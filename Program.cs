@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Polygots.Properties;
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace Polygots
 {
     internal static class Program
     {
-        public static List<DialogResult> Dialogs = new List<DialogResult>();
+        public static List<PolygotForm> PolygotList = new List<PolygotForm>();
 
         /// <summary>
         /// 해당 애플리케이션의 주 진입점입니다.
@@ -22,6 +26,11 @@ namespace Polygots
             Application.SetCompatibleTextRenderingDefault(false);
             Console.WriteLine("Initializeing Polygots v{0}", Resources.version);
 
+            var timer = new Timer();
+            timer.Interval = 1000 / 60d;
+            timer.Elapsed += new ElapsedEventHandler(Work);
+            timer.Start();
+
             using (var tray = new NotifyIcon())
             {
                 tray.Text = "Polygots";
@@ -29,13 +38,26 @@ namespace Polygots
                 tray.Visible = true;
 
                 tray.ContextMenuStrip = new ContextMenuStrip();
-                tray.ContextMenuStrip.Items.Add("About", null, (sender, e) => MessageBox.Show($"Polygots v{Resources.version}", "Info", MessageBoxButtons.OK, MessageBoxIcon.None));
+                tray.ContextMenuStrip.Items.Add("About", null,
+                    (sender, e) => MessageBox.Show($"Polygots v{Resources.version}", "Info", MessageBoxButtons.OK,
+                        MessageBoxIcon.None));
                 tray.ContextMenuStrip.Items.Add("Summon", null, TrayMenu_Summon);
+                tray.ContextMenuStrip.Items.Add("Kill All", null, TrayMenu_KillAll);
                 tray.ContextMenuStrip.Items.Add("Exit", null, TrayMenu_Exit);
 
                 Application.Run();
             }
-            // Application.Run(new Form1());
+
+            timer.Stop();
+            timer.Dispose();
+
+            PolygotList.ForEach((polygot) =>
+            {
+                polygot.Close();
+                polygot.Dispose();
+            });
+
+            Console.WriteLine("Bye!");
         }
 
         private static void TrayMenu_Summon(object sender, EventArgs e)
@@ -43,9 +65,40 @@ namespace Polygots
             new PolygotForm().Show();
         }
 
+        private static void TrayMenu_KillAll(object sender, EventArgs e)
+        {
+            PolygotList.ForEach((polygot) =>
+            {
+                polygot.Close();
+                polygot.Dispose();
+            });
+            PolygotList.Clear();
+        }
+
         private static void TrayMenu_Exit(object sender, EventArgs e)
         {
             Application.Exit();
+        }
+
+        private static void Work(object sender, ElapsedEventArgs e)
+        {
+            Console.WriteLine(PolygotList.Count);
+            PolygotList.ForEach((polygot) =>
+            {
+                Vector2 velocity = polygot.Velocity;
+
+                if (polygot.Location.Y < Screen.PrimaryScreen.WorkingArea.Height - polygot.Height) velocity.Y += 0.1f;
+                else if (polygot.Location.Y > Screen.PrimaryScreen.WorkingArea.Height - polygot.Height) velocity.Y = 0.2f;
+                else velocity.Y = 0;
+
+                polygot.Invoke(new MethodInvoker(delegate ()
+                {
+                    polygot.Location = new Point(polygot.Location.X + (int)velocity.X,
+                        polygot.Location.Y + (int)velocity.Y);
+
+                    polygot.Velocity = velocity;
+                }));
+            });
         }
     }
 }

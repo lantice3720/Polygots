@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Numerics;
 using System.Windows.Forms;
 using Polygots.Properties;
 
@@ -7,6 +8,8 @@ namespace Polygots
 {
     partial class PolygotForm
     {
+        private Vector2 _velocity = new Vector2(0, 0);
+        public Vector2 Velocity { get; set; }
         /// <summary>
         /// 필수 디자이너 변수입니다.
         /// </summary>
@@ -34,10 +37,14 @@ namespace Polygots
         {
             base.OnLoad(e);
 
+            // place the form in a random location
             var Random = new Random();
-            this.Location = new Point(Random.Next(0, Screen.PrimaryScreen.Bounds.Width - this.Width), Random.Next(0, Screen.PrimaryScreen.Bounds.Height - this.Height));
+            this.Location = new Point(Random.Next(0, Screen.PrimaryScreen.Bounds.Width - this.Width), Random.Next(0, (Screen.PrimaryScreen.WorkingArea.Height - this.Height)/2));
             this.Size = new Size(64, 64);
+            // set the texture
             this.texture.Paint += texture_Paint;
+            // add to the list
+            Program.PolygotList.Add(this);
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
