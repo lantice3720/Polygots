@@ -37,13 +37,13 @@ namespace Polygots
         {
             base.OnLoad(e);
 
-            // place the form in a random location
+            // Place the form in a random location
             var Random = new Random();
             this.Location = new Point(Random.Next(0, Screen.PrimaryScreen.Bounds.Width - this.Width), Random.Next(0, (Screen.PrimaryScreen.WorkingArea.Height - this.Height)/2));
             this.Size = new Size(64, 64);
-            // set the texture
+            // Set the texture
             this.texture.Paint += texture_Paint;
-            // add to the list
+            // Add to the list
             Program.PolygotList.Add(this);
         }
 

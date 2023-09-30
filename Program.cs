@@ -85,12 +85,21 @@ namespace Polygots
             Console.WriteLine(PolygotList.Count);
             PolygotList.ForEach((polygot) =>
             {
+                // Physics Calculation
                 Vector2 velocity = polygot.Velocity;
+                Point location = polygot.Location;
+                int bottom = Screen.PrimaryScreen.WorkingArea.Height;
 
-                if (polygot.Location.Y < Screen.PrimaryScreen.WorkingArea.Height - polygot.Height) velocity.Y += 0.1f;
-                else if (polygot.Location.Y > Screen.PrimaryScreen.WorkingArea.Height - polygot.Height) velocity.Y = 0.2f;
-                else velocity.Y = 0;
+                // Gravity effect
+                velocity.Y += 0.98f;
 
+                // Bounce effect
+                if (polygot.Location.Y + polygot.Height >= bottom)
+                {
+                    velocity.Y *= -0.9f;
+                }
+
+                // MultiThread Safety
                 polygot.Invoke(new MethodInvoker(delegate ()
                 {
                     polygot.Location = new Point(polygot.Location.X + (int)velocity.X,
